@@ -1,7 +1,11 @@
 const page_open_message = 'A user connected'
 const page_closed_message = 'A user disconnected'
 
-var app = require('express')();
+const express = require('express');
+const app = express();
+app.use(express.static('public'));
+
+// var app = require('express')();
 var http = require('http').createServer(app);
 var io = require('socket.io')(http);
 

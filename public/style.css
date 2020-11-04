@@ -1,0 +1,72 @@
+* { 
+    margin: 0; padding: 0; box-sizing: border-box; 
+}
+
+body {  /*Messages that are sent*/
+    font: 20px Helvetica, Arial; 
+}
+
+form {  /*Holds message field and send button*/
+    background: black; 
+    padding: 3px; 
+    position: fixed; 
+    bottom: 0; 
+    width: 100%; 
+}
+
+form input {  /*Message field*/
+    border-color: white; 
+    padding: 10px; 
+    width: 94%; 
+    margin-right: 0.2%; 
+}
+
+form button { /* Send button*/
+     width: 5.5%; 
+     background: orange; 
+     border-color: red; 
+     padding: 10px; 
+ }
+
+#message li { /*Message display for even numbered messages*/
+     padding: 5px 10px; 
+     background-color: white;
+     border-width: 1px;
+     border-style:solid;
+     border-top: black;
+}
+
+#message li:nth-child(odd) { /*Message display for odd numbered messages*/
+    padding: 5px 10px; 
+    background-color: #eee; 
+    border-width: 1px;
+    border-style:solid;
+    border-top: black;
+} 
+
+/* #message {
+     list-style-type: none; 
+     margin: 0; 
+     padding: 0; 
+} */
+
+/* To do
+-Understand what the body of index.html means
+-Start with Group 1
+*/
+
+/*
+Group 1
+-Layout and presentation
+-Scroll-up text
+-Emoji replacements
+-Bold messages
+-Time stamps
+-Chat log history
+
+Group 2
+-Usernames
+-Username color
+-Change username
+-Display current users
+-Cookies
