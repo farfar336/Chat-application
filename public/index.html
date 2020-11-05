@@ -4,30 +4,64 @@
   <head>
     <title>Farrukh's chat app</title>
     <link rel="stylesheet" href="style.css" type="text/css">
+    <meta charset="UTF-8">
   </head>
 
   <body>
-    <ul id="message"></ul>
+    <ul id="messageDisplayed"></ul>
     <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+      <input id="messangeInputID" autocomplete="off" /><button>Send</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
         $(function () {
           var socket = io();
-          $('form').submit(function(e){
+          $('form').submit(function(e){ //Executed when pressing enter in the input box
             e.preventDefault(); // prevents page reloading
-            socket.emit('chat message', $('#m').val());
-            $('#m').val('');
-            return false;
+            socket.emit('chat message', $('#messangeInputID').val()); //The message that gets sent to the server
+            $('#messangeInputID').val(''); //Resets the message box to be blank
+            return false; //Why is this returning false?
           });
-          socket.on('chat message', function(msg){
-            $('#message').append($('<li>').text(msg));
+          socket.on('chat message', function(messageText){ //Executed when receiving message from server
+            textWithEmoji = textToEmoji(messageText);
+            textWithTimeStamp = addTimeStamp (textWithEmoji);
+            $('#messageDisplayed').append($('<li>').text(textWithTimeStamp)); //Appends the message to contain the message text
           });
         });
+
+        function textToEmoji(messageText){ //Converts :), :( and :o to emojis in a message
+          messageText = [...messageText]
+          for (i = 1; i < 1000; i++) {
+              if (messageText[i] === null)
+                break;
+              else
+                first_char = messageText[i-1]
+                second_char = messageText[i]
+                emoji = ""
+              if (first_char === ":"){
+                if (second_char === ")")
+                  emoji = "😁";
+                else if (second_char === "(")
+                  emoji = "🙁";
+                else if (second_char === "o")
+                  emoji = "😲";
+                if (emoji !== ""){
+                  messageText[i-1] = emoji;
+                  messageText[i] = "";
+                }
+              }
+          }
+          return messageText.join('');
+        }
+
+        function addTimeStamp(textWithEmoji){ //Adds timestamp to the message
+          var d = new Date();
+          timeStamp = d.getHours() + ":" + d.getMinutes() + ":" + d.getSeconds() + " ";
+          textWithTimeStamp = timeStamp.concat(textWithEmoji);
+          return textWithTimeStamp;
+        }
       </script>
 </body>
 
 </html>
-

@@ -29,8 +29,8 @@ io.on('connection', (socket) => { //Unknown
 });
 
 io.on('connection', (message_socket) => { //Executed when a user presses 'send'
-  message_socket.on('chat message', (messsage) => { 
-    io.emit('chat message', messsage); //Displays message to everyone
+  message_socket.on('chat message', (messageText) => { 
+    io.emit('chat message', messageText); //Displays message to everyone
   });
 });
 
