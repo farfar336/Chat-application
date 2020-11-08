@@ -2,57 +2,85 @@
     margin: 0; padding: 0; box-sizing: border-box; 
 }
 
-body {  /*Messages that are displayed*/
-    font: 20px Arial; 
-    height: 925px;
-    overflow: auto;
-    display: flex;
-    flex-direction: column-reverse;
+.scrollBar{
+    background-color: red;
+    /* display: flex; */
+    overflow-y: scroll;
+    width: 500px;
+    height: 500px;
+    /* flex-direction: column; */
+    /* position: absolute; */
 }
 
-form {  /*Holds message field and send button*/
+body {  /*Container for app*/
+    flex-direction: column-reverse;
+    display: flex;
+    height: 95.5%;
+    max-width: 960px;
+    position: absolute;
+    left: 25%;
+    right: 25%;
+}
+
+form {  /*Container for message field and send button*/
     background: black; 
     padding: 3px; 
     position: fixed; 
     bottom: 0; 
-    width: 100%; 
+    width: 50%; 
+    max-width: 960px;
 }
 
-form input {  /*Message field*/
+form input {  /*Container for message field*/
     border-color: white; 
     padding: 10px; 
-    width: 94%; 
-    margin-right: 0.2%; 
+    width: 79%; 
+    margin-right: 0.5%; 
 }
 
-form button { /* Send button*/
-     width: 5.5%; 
+form button { /*Container for Send button*/
+     width: 20.5%; 
      background: orange; 
      border-color: red; 
      padding: 10px; 
  }
 
-#messageDisplayed li { /*Message display for even numbered messages*/
-     padding: 5px 10px; 
-     background-color: white;
-     border-width: 1px;
-     border-style:solid;
-     border-top: black;
+ #userDisplayed li{ 
+    font: 20px Arial; 
+    max-width: 960px;
+    padding: 5px; 
+    width:10.5%;
+    background-color: black;
+    color: white;
+    list-style-type: none;
+    left:64.5%;
+    bottom: 4.5%;
+    position: fixed;
 }
 
-#messageDisplayed li:nth-child(odd) { /*Message display for odd numbered messages*/
-    padding: 5px 10px; 
+#messageDisplayed li { /*Container for displaying even numbered messages*/
+    font: 20px Arial; 
+    max-width: 960px;
+    width: 79%;
+    padding: 5px; 
+    background-color: white;
+    border-width: 1px;
+    border-style:solid;
+    border-top: black;
+    list-style-type: none;
+}
+
+#messageDisplayed li:nth-child(odd) { /*Container for displaying odd numbered messages*/
+    font: 20px Arial; 
+    max-width: 960px;
+    width: 79%;
+    padding: 5px; 
     background-color: #eee; 
     border-width: 1px;
     border-style:solid;
     border-top: black;
+    list-style-type: none;
 } 
-
-/* #messageID {
-     list-style-type: none; 
-     margin: 0; 
-     padding: 0; 
-} */
 
 /* To do
 -Start with Group 1
@@ -61,16 +89,15 @@ form button { /* Send button*/
 /*
 Group 1
 -Layout and presentation*
--Scroll-up text@
 -Emoji replacements*
 -Time stamps *
--Bold messages
--Chat log history
-
+-Chat log history*
+-Usernames*
 
 Group 2
--Usernames
+-Bold messages
 -Username color
 -Change username
--Display current users
 -Cookies
+-Display current users@
+-Scroll-up text@
