@@ -10,8 +10,6 @@
   <div className= "scrollBar">
     <ul id="userDisplayed"></ul>
     <body>
-
-
       <ul id="messageDisplayed"></ul>
       <form action="">
         <input id="messangeInputID" autocomplete="off" /><button>Send</button>
@@ -23,43 +21,56 @@
             const userid_assignment_event = "1"
             const message_display_event = "2"
             const user_display_event = "3"
+            const retrieve_users_event = "4"
             var socket = io();
             let username = ""
 
             $('form').submit(function(e){ //Executed when pressing enter in the input box
               e.preventDefault(); // prevents page reloading
-              let toClient = username + ": " + $('#messangeInputID').val();
-              socket.emit('chat message', toClient); //The message that gets sent to the server
+              let toServer = username + " : " + $('#messangeInputID').val();
+              socket.emit('chat message', toServer); //The message that gets sent to the server
               $('#messangeInputID').val(''); //Resets the message box to be blank
               return false; 
             });
 
             socket.on('chat message', function(fromServer){ //Receives string from server
-              let eventType = getFirstWord(fromServer);
-              let content = removeFirstWord(fromServer)
+              let eventType = getWordAtIndex(fromServer, 0);
+              let content = removeWordAtIndex(fromServer, 1);
+
               if (eventType == userid_assignment_event){
                 username = content;
-                let toDisplay = "Welcome " + username
-                $('#messageDisplayed').append($('<li>').text(toDisplay)); //Appends the message to contain the message text
+                if (username == " "){
+                  let toDisplay = "Welcome " + username
+                  $('#messageDisplayed').append($('<li>').text(toDisplay)); //Appends the message to contain the message text
+                }
               }
               else if (eventType == message_display_event){
+                aUsername = getWordAtIndex(content,1)
+                if (aUsername == username)
+                  content = content.bold();
                 let toDisplay = content
-                $('#messageDisplayed').append($('<li>').text(toDisplay)); //Appends the message to contain the message text
+                $('#messageDisplayed').append($('<li>').text(content)); //Appends the message to contain the message text
               }
               else if (eventType == user_display_event){
                 let toDisplay = content;
+                if (username == content)
+                  toDisplay = toDisplay + "(you)";
                 $('#userDisplayed').append($('<li>').text(toDisplay));
+              }
+              else if( eventType == retrieve_users_event){
+                toServer = username + " : " + retrieve_users_event;
+                socket.emit('chat message', toServer);
               }
             });
           });
 
-          function getFirstWord(words){
-            var firstWord = words.split(" ")[0]
-            return firstWord;
+          function getWordAtIndex(words, index){
+            var wordAtIndex = words.split(" ")[index]
+            return wordAtIndex;
           }
 
-          function removeFirstWord(words){
-            var result = words.substr(words.indexOf(" ") + 1);
+          function removeWordAtIndex(words, index){
+            var result = words.substr(words.indexOf(" ") + index);
             return result;
           }
         </script>

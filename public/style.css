@@ -49,13 +49,13 @@ form button { /*Container for Send button*/
     font: 20px Arial; 
     max-width: 960px;
     padding: 5px; 
-    width:10.5%;
+    width:21%;
     background-color: black;
     color: white;
     list-style-type: none;
-    left:64.5%;
-    bottom: 4.5%;
-    position: fixed;
+    left:79%;
+    bottom: 0;
+    position: relative;
 }
 
 #messageDisplayed li { /*Container for displaying even numbered messages*/
@@ -83,7 +83,7 @@ form button { /*Container for Send button*/
 } 
 
 /* To do
--Start with Group 1
+-remove user when they disconnect
 */
 
 /*
@@ -93,11 +93,11 @@ Group 1
 -Time stamps *
 -Chat log history*
 -Usernames*
+-Change username*
 
 Group 2
--Bold messages
--Username color
--Change username
 -Cookies
--Display current users@
--Scroll-up text@
+-Username color 
+-Bold messages //Bold doesn't work?
+-Display current users@ //Display only once
+-Scroll-up text@ //Scroll won't appear
