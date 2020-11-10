@@ -1,7 +1,7 @@
 const page_open_message = 'A user connected'
 const page_closed_message = 'A user disconnected'
 const max_messages = 200;
-const userid_assignment_event = "1"
+const username_assignment_event = "1"
 const message_display_event = "2"
 const user_display_event = "3"
 const retrieve_users_event = "4"
@@ -17,7 +17,6 @@ var messages = new Array (max_messages)
 let numberOfMessages = 0;
 let userID = 1;
 var users = new Array();
-var tempUsers = new Array();
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html'); //What html file will be sent to the webpage to display
@@ -28,25 +27,27 @@ http.listen(3000, () => { //Specifies what port number to for hosting
 });
 
 io.on('connection', (connection_socket) => {  
-    initalizeUser(connection_socket);
-
-    connection_socket.on('disconnect', () => { 
-      io.emit('chat message', retrieve_users_event + " ");
-      users = new Array();
-    });
+  initalizeUser(connection_socket);
+  updateUsersForClient();
+  connection_socket.on('disconnect', () => { 
+    removeUser();
+  });
 });
 
-io.on('connection', (messageSocket) => { 
-  messageSocket.on('chat message', (fromClient) => { 
+io.on('connection', (connection_socket) => { 
+  connection_socket.on('chat message', (fromClient) => { 
     let secondWord = getWordAtIndex(fromClient,2)
     if (secondWord == username_change_event){
-        changeUsername(fromClient,messageSocket);
+        changeUsername(fromClient,connection_socket);
+        updateUsersForClient();
     }
     else if (secondWord == color_change_event){
         changeUsernameColor(fromClient);
+        updateUsersForClient();
     }
     else if (secondWord == retrieve_users_event){
       updateUsersForServer(fromClient);
+      updateUsersForClient();
     }
     else{
       toClient = createAMessage(fromClient);
@@ -56,47 +57,17 @@ io.on('connection', (messageSocket) => {
   });
 });
 
-
 function updateUsersForServer(fromClient){
   username = getWordAtIndex (fromClient,0);
   users.push(username);
 }
 
-function changeUsernameColor(fromClient){
-  username = getWordAtIndex (fromClient,0);
-  newColor = getWordAtIndex (fromClient,3);
-  updateColorInStoredMessages(username,newColor);
-}
-
-function updateColorInStoredMessages(username,newColor){
-
-}
-
-function changeUsername(fromClient,connection_socket){
-  username = getWordAtIndex (fromClient,0);
-  newUsername = getWordAtIndex (fromClient,3);
-  usernameIndexExists = users.indexOf(newUsername);
-  if (usernameIndexExists > does_not_exist) {
-    console.log("username exists");
-  } 
-  else {
-    console.log("username does not exist. username changed");
-    usernameIndex = users.indexOf(username);
-    users[usernameIndex] = newUsername;
-    toClient = userid_assignment_event + " " + newUsername
-    connection_socket.emit('chat message', toClient);
-    updateUsersForClient();
-    // updateUsernameInStoredMessages(username, newUsername);
-  }
-}
-
-function updateUsernameInStoredMessages(oldUsername, newUsername){
-    for (i = 0; i < numberOfMessages ; i++){
-      username = getWordAtIndex(messages[i],1);
-      if (username == oldUsername)
-        messages[i] = messages[i].replace(oldUsername, newUsername);
-  }
-  updateMessagesForClient();
+function updateMessagesForServer(newMessage){
+  for (i = max_messages - 1; i > 0 ; i--)
+    messages[i] = messages [i - 1]
+  messages[0] = newMessage
+  if (numberOfMessages <max_messages)
+    numberOfMessages++;
 }
 
 function updateMessagesForClient(){
@@ -107,45 +78,76 @@ function updateMessagesForClient(){
 }
 
 function updateUsersForClient(){
+  clearUsersList();
+  addNewUsers();
+}
+
+function clearUsersList(){
+  for (i = 0; i < 100; i++){
+    toClient = user_display_event + " ";
+    io.emit('chat message', toClient);
+  }
+}
+
+function addNewUsers(){
   for (i = 0; i < users.length; i++){
     toClient = user_display_event + " " + users[i];
     io.emit('chat message', toClient);
   }
 }
 
-function getWordAtIndex(words, index){
-  var wordAtIndex = words.split(" ")[index]
-  return wordAtIndex;
-}
 
 function initalizeUser(connection_socket){
   let username = "user" + userID++;
   users.push(username);
-  toClient = userid_assignment_event + " " + username;
+  toClient = username_assignment_event + " " + username;
   connection_socket.emit('chat message', toClient);
   for (i = numberOfMessages - 1; i > - 1; i--){
     toClient = message_display_event + " " + messages[i];
     connection_socket.emit('chat message', toClient);
-    
   }
-  updateUsersForClient();
-  
+}
+
+function removeUser(){
+  io.emit('chat message', retrieve_users_event + " ");
+  delete users;
+  users = new Array();
+}
+
+function changeUsernameColor(fromClient){
+  username = getWordAtIndex (fromClient,0);
+  newColor = getWordAtIndex (fromClient,3);
+  updateColorInStoredMessages(username,newColor);
+}
+
+function changeUsername(fromClient,connection_socket){
+  username = getWordAtIndex (fromClient,0);
+  newUsername = getWordAtIndex (fromClient,3);
+  usernameIndex = users.indexOf(newUsername);
+  if (usernameIndex == does_not_exist) {
+    console.log("username does not exist. username changed");
+    usernameIndex = users.indexOf(username);
+    users[usernameIndex] = newUsername;
+    toClient = username_assignment_event + " " + newUsername
+    connection_socket.emit('chat message', toClient);
+    // updateUsernameInStoredMessages(username, newUsername); //For updating the usernames in the chat history
+  } 
+  else {
+    console.log("username exists");
+  }
 }
 
 function createAMessage(fromClient){
-  let timeStamp = getTimeStamp();
-  let messageWithEmoji = textToEmoji(fromClient);
+  timeStamp = getTimeStamp();
+  messageWithEmoji = textToEmoji(fromClient);
   toClient = timeStamp.concat(messageWithEmoji);
   updateMessagesForServer(toClient)
   return toClient;
 }
 
-function updateMessagesForServer(newMessage){
-  for (i = max_messages - 1; i > 0 ; i--)
-    messages[i] = messages [i - 1]
-  messages[0] = newMessage
-  if (numberOfMessages <max_messages)
-    numberOfMessages++;
+function getWordAtIndex(words, index){
+  var wordAtIndex = words.split(" ")[index]
+  return wordAtIndex;
 }
 
 function getTimeStamp(){ 
@@ -177,4 +179,13 @@ function textToEmoji(message){ //Converts :), :( and :o to emojis in a message
       }
   }
   return message.join('');
+
+  function updateUsernameInStoredMessages(oldUsername, newUsername){
+    for (i = 0; i < numberOfMessages ; i++){
+      username = getWordAtIndex(messages[i],1);
+      if (username == oldUsername)
+        messages[i] = messages[i].replace(oldUsername, newUsername);
+    }
+  updateMessagesForClient();
+  }
 }

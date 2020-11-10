@@ -9,8 +9,9 @@
 
   <div className= "scrollBar">
     <ul id="userDisplayed"></ul>
+    <ul id="messageDisplayed"></ul>
     <body>
-      <ul id="messageDisplayed"></ul>
+
       <form action="">
         <input id="messangeInputID" autocomplete="off" /><button>Send</button>
       </form>
@@ -18,7 +19,7 @@
       <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
       <script>
           $(function () {
-            const userid_assignment_event = "1"
+            const username_assignment_event = "1"
             const message_display_event = "2"
             const user_display_event = "3"
             const retrieve_users_event = "4"
@@ -37,7 +38,7 @@
               let eventType = getWordAtIndex(fromServer, 0);
               let content = removeWordAtIndex(fromServer, 1);
 
-              if (eventType == userid_assignment_event){
+              if (eventType == username_assignment_event){
                 username = content;
                 if (username == " "){
                   let toDisplay = "Welcome " + username
@@ -57,7 +58,7 @@
                   toDisplay = toDisplay + "(you)";
                 $('#userDisplayed').append($('<li>').text(toDisplay));
               }
-              else if( eventType == retrieve_users_event){
+              else if(eventType == retrieve_users_event){
                 toServer = username + " : " + retrieve_users_event;
                 socket.emit('chat message', toServer);
               }
