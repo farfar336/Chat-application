@@ -1,3 +1,20 @@
+/*
+Done
+-Layout and presentation*
+-Emoji replacements*
+-Time stamps *
+-Chat log history*
+-Usernames*
+-Change username*
+-Cookies*
+
+Left:
+-Username color 
+-Bold messages //Bold doesn't work?
+-Display current users@ //Display only once
+-Scroll-up text@ //Scroll won't appear
+*/
+
 * { 
     margin: 0; padding: 0; box-sizing: border-box; 
 }
@@ -82,22 +99,4 @@ form button { /*Container for Send button*/
     list-style-type: none;
 } 
 
-/* To do
--remove user when they disconnect
-*/
 
-/*
-Group 1
--Layout and presentation*
--Emoji replacements*
--Time stamps *
--Chat log history*
--Usernames*
--Change username*
-
-Group 2
--Cookies
--Username color 
--Bold messages //Bold doesn't work?
--Display current users@ //Display only once
--Scroll-up text@ //Scroll won't appear

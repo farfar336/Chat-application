@@ -4,19 +4,22 @@ const max_messages = 200;
 const username_assignment_event = "1"
 const message_display_event = "2"
 const user_display_event = "3"
-const retrieve_users_event = "4"
+const disconnect_user_event = "4"
+const user_came_back_event = "5"
+const check_if_user_came_back_event = "6"
 const username_change_event = "/name"
 const color_change_event = "/color"
 const does_not_exist = -1;
-const express = require('express');
-const app = express();
-app.use(express.static('public'));
-var http = require('http').createServer(app);
-var io = require('socket.io')(http);
 var messages = new Array (max_messages)
 let numberOfMessages = 0;
 let userID = 1;
 var users = new Array();
+const express = require('express');
+const { exists } = require('fs');
+const app = express();
+app.use(express.static('public'));
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html'); //What html file will be sent to the webpage to display
@@ -28,7 +31,7 @@ http.listen(3000, () => { //Specifies what port number to for hosting
 
 io.on('connection', (connection_socket) => {  
   initalizeUser(connection_socket);
-  updateUsersForClient();
+  updateUsersForAllClients();
   connection_socket.on('disconnect', () => { 
     removeUser();
   });
@@ -36,18 +39,22 @@ io.on('connection', (connection_socket) => {
 
 io.on('connection', (connection_socket) => { 
   connection_socket.on('chat message', (fromClient) => { 
-    let secondWord = getWordAtIndex(fromClient,2)
-    if (secondWord == username_change_event){
+    let eventType = getWordAtIndex(fromClient,2)
+    if (eventType == username_change_event){
         changeUsername(fromClient,connection_socket);
-        updateUsersForClient();
+        updateUsersForAllClients();
     }
-    else if (secondWord == color_change_event){
+    else if (eventType == color_change_event){
         changeUsernameColor(fromClient);
-        updateUsersForClient();
+        updateUsersForAllClients();
     }
-    else if (secondWord == retrieve_users_event){
+    else if (eventType == disconnect_user_event){
       updateUsersForServer(fromClient);
-      updateUsersForClient();
+      updateUsersForAllClients();
+    }
+    else if (eventType == user_came_back_event){
+      updateExistingUserForServer(fromClient);
+      updateUsersForAllClients();
     }
     else{
       toClient = createAMessage(fromClient);
@@ -57,9 +64,25 @@ io.on('connection', (connection_socket) => {
   });
 });
 
+function updateExistingUserForServer(fromClient){
+  username = getWordAtIndex (fromClient,0);
+  usernameIndex = users.indexOf(username);
+  userID--;
+  users.splice(users.length - 1, 1); 
+  if (usernameIndex == does_not_exist){} //Do nothing
+  else{
+    username = "user" + userID++;
+  }
+  users.push(username);
+}
+
 function updateUsersForServer(fromClient){
   username = getWordAtIndex (fromClient,0);
-  users.push(username);
+  usernameIndex = users.indexOf(username);
+  if (usernameIndex == does_not_exist){} //Do nothing
+  else{
+    username = "user" + userID++;
+  }
 }
 
 function updateMessagesForServer(newMessage){
@@ -77,8 +100,8 @@ function updateMessagesForClient(){
   }
 }
 
-function updateUsersForClient(){
-  clearUsersList();
+function updateUsersForAllClients(){
+  // clearUsersList();
   addNewUsers();
 }
 
@@ -96,12 +119,19 @@ function addNewUsers(){
   }
 }
 
-
 function initalizeUser(connection_socket){
+  initailizeMessagesDisplayed(connection_socket);
+  assignUsername(connection_socket);
+}
+
+function assignUsername(connection_socket){
   let username = "user" + userID++;
   users.push(username);
   toClient = username_assignment_event + " " + username;
   connection_socket.emit('chat message', toClient);
+}
+
+function initailizeMessagesDisplayed(connection_socket){
   for (i = numberOfMessages - 1; i > - 1; i--){
     toClient = message_display_event + " " + messages[i];
     connection_socket.emit('chat message', toClient);
@@ -109,7 +139,7 @@ function initalizeUser(connection_socket){
 }
 
 function removeUser(){
-  io.emit('chat message', retrieve_users_event + " ");
+  io.emit('chat message', disconnect_user_event + " ");
   delete users;
   users = new Array();
 }

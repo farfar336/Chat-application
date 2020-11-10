@@ -18,14 +18,14 @@
       <script src="/socket.io/socket.io.js"></script>
       <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
       <script>
-          $(function () {
             const username_assignment_event = "1"
             const message_display_event = "2"
             const user_display_event = "3"
-            const retrieve_users_event = "4"
-            var socket = io();
+            const disconnect_user_event = "4"
+            const user_came_back_event = "5"
             let username = ""
-
+            var socket = io();
+          $(function () {
             $('form').submit(function(e){ //Executed when pressing enter in the input box
               e.preventDefault(); // prevents page reloading
               let toServer = username + " : " + $('#messangeInputID').val();
@@ -39,31 +39,64 @@
               let content = removeWordAtIndex(fromServer, 1);
 
               if (eventType == username_assignment_event){
-                username = content;
-                if (username == " "){
-                  let toDisplay = "Welcome " + username
-                  $('#messageDisplayed').append($('<li>').text(toDisplay)); //Appends the message to contain the message text
-                }
+                username = assignUsername(content);
               }
               else if (eventType == message_display_event){
-                aUsername = getWordAtIndex(content,1)
-                if (aUsername == username)
-                  content = content.bold();
-                let toDisplay = content
-                $('#messageDisplayed').append($('<li>').text(content)); //Appends the message to contain the message text
+                displayMessage(content);
               }
               else if (eventType == user_display_event){
-                let toDisplay = content;
-                if (username == content)
-                  toDisplay = toDisplay + "(you)";
-                $('#userDisplayed').append($('<li>').text(toDisplay));
+                displayUser(content);
               }
-              else if(eventType == retrieve_users_event){
-                toServer = username + " : " + retrieve_users_event;
-                socket.emit('chat message', toServer);
+              else if(eventType == disconnect_user_event){
+                sendUsernameToServer();
               }
             });
           });
+          
+          function sendUsernameToServer(){
+            toServer = username + " : " + disconnect_user_event;
+            socket.emit('chat message', toServer);
+          }
+
+          function displayUser(content){
+            let toDisplay = content;
+            if (username == content)
+              toDisplay = toDisplay + "(you)";
+            $('#userDisplayed').append($('<li>').text(toDisplay));
+          }
+
+          function displayMessage(content){
+            aUsername = getWordAtIndex(content,1)
+            if (aUsername == username)
+              content = content.bold();
+            let toDisplay = content
+            $('#messageDisplayed').append($('<li>').text(content)); //Appends the message to contain the message text
+          }
+
+          function assignUsername(content){
+            if (username == "" ){
+              localUsernameStored = localStorage.getItem('username');
+              Welcome = ""
+              if (localUsernameStored == null){
+                Welcome = "Welcome"
+                username = content;
+                localStorage.setItem('username', username);
+              }
+              else{
+                Welcome = "Welcome back"
+                username = localUsernameStored;
+                toServer = username + " : " + user_came_back_event;
+                socket.emit('chat message', toServer);
+              }
+              let toDisplay = Welcome + " " + username
+              $('#messageDisplayed').append($('<li>').text(toDisplay)); //Appends the message to contain the message text
+            }
+            else{
+              username = content;
+              localStorage.setItem('username', username);
+            }
+            return username;
+          }
 
           function getWordAtIndex(words, index){
             var wordAtIndex = words.split(" ")[index]
