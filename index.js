@@ -45,6 +45,7 @@ io.on('connection', (connection_socket) => {
 
 io.on('connection', (connection_socket) => { 
   connection_socket.on('chat message', (fromClient) => {
+
     eventTypeIndex4 = getWordAtIndex(fromClient, event_type_index)
     eventTypeIndex5 = getWordAtIndex(fromClient, 5)
     if (eventTypeIndex5 == username_change_event){
@@ -105,8 +106,8 @@ function removeOldMessagesDisplayed(){
 }
 
 function displayMessages(){
-  for (i = 0; i < numberOfMessages; i++){
-    toClient = place_holder + " " +  place_holder + " : " + place_holder + " " + message_display_event + " " + messages[i];
+  for (i = numberOfMessages - 1; i > - 1; i--){
+    toClient = prepareMessageForClient(messages[i])
     io.emit('chat message', toClient);
   }
 }
@@ -117,7 +118,8 @@ function updateUsersForAllClients(){
 }
 
 function removeOldUsersDisplayed(){
-  toClient = place_holder + " " +  place_holder + " : " + place_holder + " " + remove_messages_event + " " ;
+  
+  toClient = place_holder + " " +  place_holder + " : " + place_holder + " " + remove_user_list_event + " " ;
   io.emit('chat message', toClient);
 }
 
@@ -126,7 +128,7 @@ function displayUsers(){
     toClient = place_holder + " " +  users[i] + " : " + place_holder + " " + user_display_event + " ";
     io.emit('chat message', toClient);
   }
-  console.log(users)
+
 }
 
 function initalizeUser(connection_socket){
@@ -138,12 +140,13 @@ function assignUsername(connection_socket){
   let username = "user" + userID++;
   users.push(username);
   toClient = place_holder + " " +  username + " : " + place_holder + " " + username_assignment_event + " " ;
+
   connection_socket.emit('chat message', toClient);
 }
 
 function initailizeMessagesDisplayed(connection_socket){
   for (i = numberOfMessages - 1; i > - 1; i--){
-    toClient = messages[i];
+    toClient = prepareMessageForClient(messages[i])
     connection_socket.emit('chat message', toClient);
   }
 }
@@ -163,7 +166,7 @@ function changeUsernameColor(fromClient,connection_socket){
 }
 
 function changeUsername(fromClient,connection_socket){
-  username = getWordAtIndex (fromClient,usernameIndex);
+  username = getWordAtIndex (fromClient,username_index);
   newUsername = getWordAtIndex (fromClient,6);
   usernameIndex = users.indexOf(newUsername);
   if (usernameIndex == does_not_exist) {
@@ -190,13 +193,12 @@ function updateUsernameInStoredMessages(oldUsername, newUsername){
 
 function createAMessage(fromClient){
   storeMessageInServer(fromClient)
-  toClient = prepareMessageForClient();
+  toClient = prepareMessageForClient(messages[0]);
 
   return toClient;
 }
 
-function prepareMessageForClient(){
-  content = messages[0];
+function prepareMessageForClient(content){
   timeStamp = getWordAtIndex (content,timestamp_index);
   username = getWordAtIndex(content, username_index)
   color = getWordAtIndex(content, color_index);
@@ -206,7 +208,6 @@ function prepareMessageForClient(){
   content = removeWordInString (color,content)
   messageWithEmoji = textToEmoji(content);
   toClient = timeStamp + " " + username + " : " + color + " " + message_display_event + " " + content;
-
   return toClient;
 }
 
@@ -244,12 +245,12 @@ function getTimeStamp(){
 
 function textToEmoji(message){ //Converts :), :( and :o to emojis in a message
   message = [...message]
-  for (i = 1; i < 1000; i++) {
-      if (message[i] === null)
+  for (j = 1; j < 1000; j++) {
+      if (message[j] === null)
         break;
       else
-        first_char = message[i-1]
-        second_char = message[i]
+        first_char = message[j-1]
+        second_char = message[j]
         emoji = ""
       if (first_char === ":"){
         if (second_char === ")")
@@ -259,8 +260,8 @@ function textToEmoji(message){ //Converts :), :( and :o to emojis in a message
         else if (second_char === "o")
           emoji = "😲";
         if (emoji !== ""){
-          message[i-1] = emoji;
-          message[i] = "";
+          message[j-1] = emoji;
+          message[j] = "";
         }
       }
   }

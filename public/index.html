@@ -51,7 +51,7 @@
             socket.on('chat message', function(fromServer){ //Receives string from server
               eventType = getWordAtIndex(fromServer, event_type_index);
               content = fromServer;
-              $('#messageDisplayed').append($('<li>').text(content)); //Appends the message to contain the message text
+              // $('#messageDisplayed').append($('<li>').text(fromServer)); //Appends the message to contain the message text
               if (eventType == username_assignment_event){
                 username = assignUsername(content);
               }
