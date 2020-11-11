@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+
+  <head>
+    <title>Farrukh's chat app</title>
+    <link rel="stylesheet" href="style.css" type="text/css">
+    <meta charset="UTF-8">
+  </head>
+
+  <div class = "mainApp">
+  <div class = "userList"> <ul id="userDisplayed"></ul></div>
+    <div class = "messageBody"> 
+      <div class= "scrollBar" id = scrollID>
+      <ul id="messageDisplayed"></ul> 
+      </div>
+    </div>
+      <form action="">
+        <input id="messangeInputID" autocomplete="off" /><button>Send</button>
+      </form>
+      <script src="/socket.io/socket.io.js"></script>
+      <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+      <script>
+            const username_assignment_event = "@1"
+            const message_display_event = "@2"
+            const user_display_event = "@3"
+            const disconnect_user_event = "@4"
+            const user_came_back_event = "@5"
+            const remove_user_list_event = "@6"
+            const color_change_event = "/color" 
+            const remove_messages_event = "@7"
+            const alert_event = "@8"
+            const timestamp_index = 0;
+            const username_index=1;
+            const semi_colon_index = 2;
+            const color_index = 3;
+            const event_type_index = 4
+            const place_holder = "_"
+            let username = ""
+            let myColor = "000000";
+            var socket = io();
+            var scrollDown = document.querySelector('#scrollID');
+          
+          $(function () {
+            $('form').submit(function(e){ //Executed when pressing enter in the input box
+              e.preventDefault(); // prevents page reloading
+              toServer = place_holder + " " +  username + " : " + myColor + " " + place_holder + " "+ $('#messangeInputID').val();
+              socket.emit('chat message', toServer); //The message that gets sent to the server
+              $('#messangeInputID').val(''); //Resets the message box to be blank
+              return false; 
+            });
+            socket.on('chat message', function(fromServer){ //Receives string from server
+              eventType = getWordAtIndex(fromServer, event_type_index);
+              content = fromServer;
+
+              // $('#messageDisplayed').append($('<li>').text(content)); //Appends the message to contain the message text
+              if (eventType == username_assignment_event){
+                username = assignUsername(content);
+              }
+              else if (eventType == message_display_event){
+                displayMessage(content);
+              }
+              else if (eventType == remove_user_list_event){
+                removeUsersDisplayed();
+              }
+              else if (eventType == user_display_event){
+                displayUser(content);
+              }
+              else if(eventType == disconnect_user_event){
+                sendUsernameToServer();
+              }
+              else if(eventType == color_change_event){
+                changeUsernameColor(content);
+              }
+              else if(eventType == remove_messages_event){
+                removeMessagesDisplayed();
+              }
+              else if(eventType == user_came_back_event){
+                reAssignUsername(content);
+              }
+              else if(eventType == alert_event){
+                displayAlert(content);
+              }
+            });
+          });
+
+          function displayAlert(content){
+            content = trimContentForAlert(content);
+            alert (content);
+          }
+          
+          function trimContentForAlert(content){
+            aTimestamp = getWordAtIndex(content, timestamp_index)
+            aUsername = getWordAtIndex(content, username_index)
+            AColor = getWordAtIndex(content, color_index)
+            AnEventType = getWordAtIndex(content, event_type_index)
+
+            content = removeWordInString(aTimestamp, content)
+            content = removeWordInString(aUsername, content)
+            content = removeWordInString(AColor, content)
+            content = removeWordInString(AnEventType, content)
+            return content;
+          }
+
+          function reAssignUsername(content){
+            aUsername = getWordAtIndex (content, username_index)
+            username = aUsername;
+            localStorage.setItem('username', username);
+            Welcome = "Welcome"
+            let toDisplay = Welcome + " " + username
+          $('#messageDisplayed').append($('<li>').text(toDisplay)); //Appends the message to contain the message text
+          }
+
+          function removeMessagesDisplayed(){
+            $('#messageDisplayed').html(" ")
+          }
+
+          function changeUsernameColor(content){
+            newColor = getWordAtIndex(content,color_index)
+            myColor = newColor;
+          }
+
+          function removeUsersDisplayed(){
+            $('#userDisplayed').html(" ")
+          }
+          
+          function sendUsernameToServer(){
+            toServer = place_holder + " " +  username + " : " + place_holder + " " + disconnect_user_event + " ";
+            socket.emit('chat message', toServer);
+          }
+
+          function displayUser(content){
+            aUsername = getWordAtIndex(content,username_index);
+            let toDisplay = aUsername
+            if (username == aUsername)
+              toDisplay = toDisplay + "(you)";
+            $('#userDisplayed').append($('<li>').text(toDisplay));
+          }
+
+          function displayMessage(content){
+            aUsername = getWordAtIndex(content,username_index)
+            aColor = "#" + getWordAtIndex (content,color_index);
+            content = trimContentForMessage(content);
+            style = ""
+            if (aUsername == username){
+              style = "bold"
+            }
+            else
+              style = "normal"
+            let toDisplay = content
+            $('#messageDisplayed').append($('<li>').text(content).css('color', aColor).css('font-weight', style)); //Appends the message to contain the message text
+            scrollDown.scrollTop = scrollDown.scrollHeight - scrollDown.clientHeight;
+          }
+
+          function trimContentForMessage(content){
+            color = getWordAtIndex(content, color_index)
+            eventType = getWordAtIndex(content, event_type_index)
+            content = removeWordInString(color, content)
+            content = removeWordInString(eventType, content)
+            return content;
+          }
+
+          function assignUsername(content){
+            aUsername = getWordAtIndex(content, username_index)
+            if (username == "" ){
+              localUsernameStored = localStorage.getItem('username');
+              Welcome = ""
+              if (localUsernameStored == null){
+                Welcome = "Welcome"
+                username = aUsername;
+                localStorage.setItem('username', username);
+                let toDisplay = Welcome + " " + username
+              $('#messageDisplayed').append($('<li>').text(toDisplay)); //Appends the message to contain the message text
+              }
+              else{
+
+                toServer = place_holder + " " +  localUsernameStored + " : " + place_holder + " " + user_came_back_event + " ";
+                socket.emit('chat message', toServer);
+              }
+            }
+            else{
+              username = aUsername;
+              localStorage.setItem('username', username);
+            }
+            return username;
+          }
+
+          function getWordAtIndex(words, index){
+            var wordAtIndex = words.split(" ")[index]
+            return wordAtIndex;
+          }
+
+          function removeWordInString(aWord, words){
+            result = words.replace(aWord + " ", "")
+            return result;
+          }
+
+          function removePlaceHolders(string){
+            for (i = 0; i < 1; i++){
+              string = removeWordInString(place_holder, string)
+            }
+            return string;
+          }
+        </script>
+</div>
+
+
+</html>
